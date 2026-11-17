@@ -15,6 +15,35 @@ The Japan Tourism Lakehouse project aims to create a comprehensive data solution
 
 The solution is designed as a multi-layered architecture that separates data ingestion, storage, processing, and presentation. The key components include:
 
+```mermaid
+flowchart LR
+    subgraph Sources["External Data Sources"]
+        APIs["Public APIs"]
+        Web["Tourism websites and social media"]
+        Datasets["Government and third-party datasets"]
+    end
+
+    subgraph Pipeline["Lakehouse Pipeline"]
+        Ingestion["Ingestion"]
+        Bronze["Bronze"]
+        Silver["Silver"]
+        Gold["Gold"]
+    end
+
+    Analytics["Analytics and Consumption"]
+    Quality["Data Quality and Monitoring"]
+
+    APIs --> Ingestion
+    Web --> Ingestion
+    Datasets --> Ingestion
+    Ingestion --> Bronze --> Silver --> Gold --> Analytics
+
+    Quality -. "checks and monitoring" .-> Ingestion
+    Quality -.-> Bronze
+    Quality -.-> Silver
+    Quality -.-> Gold
+```
+
 - **Bronze Layer**: Responsible for collecting raw data from various sources, including APIs, web scraping, and third-party datasets. This layer ensures that data is ingested in an append-only manner, preserving the original source records for historical traceability.
 - **Silver Layer**: Implements data cleaning, validation, and standardization processes to ensure data quality and consistency. This layer serves as an intermediary between the bronze layer and the gold layer.
 - **Gold Layer**: Contains curated, transformed, and enriched data that is ready for analysis and reporting. This layer provides a unified view of the data for different business use cases.
@@ -32,7 +61,7 @@ The architecture supports a variety of data sources, including:
 
 ## Data processing layers
 
-The architecture is designed to support independent transformation layers, allowing for flexible and modular data processing. Each layer can be developed, tested, and deployed independently, enabling rapid iteration and adaptation to changing business requirements. The architecture is based on the medalion pattern, which promotes separation of concerns and enhances maintainability.
+The architecture is designed to support independent transformation layers, allowing for flexible and modular data processing. Each layer can be developed, tested, and deployed independently, enabling rapid iteration and adaptation to changing business requirements. The architecture is based on the Medallion Architecture, which promotes separation of concerns and enhances maintainability.
 
 ## Source changes and historical data assumptions
 

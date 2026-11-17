@@ -17,13 +17,15 @@ managing ingestion separately from downstream transformations.
 
 ## Decision
 
-Raw data will be ingested append-only. Every delivery, including duplicates and corrections, will be retained as received; existing raw records will not be overwritten. Ingestion metadata will record provenance, such as the source, arrival time, and batch identifier.
+Raw data will be ingested append-only. Every delivery, including duplicates and corrections, will be retained as received during its retention period; existing raw records will not be overwritten or modified during that period. This decision establishes immutability, but does not define how long raw data must be retained. Ingestion metadata will record provenance, such as the source, arrival time, and batch identifier.
 
 Ingestion will capture source records, while validation, deduplication, consolidation, and business transformations will take place downstream. This separation preserves original inputs and allows transformation logic to change independently.
 
 Downstream layers will maintain consolidated representations of source data, applying documented rules to resolve duplicates and corrections. Where historical attribute changes must be tracked, the representation will use SCD Type 2: preserve prior versions with effective-time boundaries and identify the current version. SCD Type 2 is required only for data with this historical-tracking need.
 
 Downstream data must be reproducible from retained raw records and versioned transformation logic. Reprocessing will rebuild or update derived data from those records without unnecessary retrieval from source systems.
+
+If a raw-data lifecycle policy is introduced, archival to lower-cost storage is preferred to deletion. Deletion requires an explicitly approved retention or compliance requirement and an assessment of its impact on historical reprocessing; reproducibility is limited to the raw data that remains retained.
 
 ## Alternatives Considered
 
@@ -42,7 +44,7 @@ Downstream data must be reproducible from retained raw records and versioned tra
 
 ### Negative
 
-- **Increased storage requirements:** Append-only retention keeps duplicates, corrections, and prior deliveries, requiring more storage than overwriting records. A proposed solution for this to be discussed in the future is to implement a retention policy for raw data, where older records can be archived or deleted after a certain period, while still maintaining the ability to rebuild derived data from the remaining records.
+- **Increased storage requirements:** Append-only retention keeps duplicates, corrections, and prior deliveries, requiring more storage than overwriting records. A future lifecycle policy should prefer archiving older records to lower-cost storage. Deletion should occur only for an explicitly approved retention or compliance requirement, after assessing the impact on historical reprocessing.
 - **More complex change detection:** Downstream processing must identify duplicates and corrections and apply documented rules to consolidate them.
 - **Additional processing and metadata management:** Provenance, batch details, and transformation versions must be maintained, and derived data must be rebuilt or updated when needed.
 
@@ -62,6 +64,9 @@ documented rules for duplicates and corrections. Where historical attribute
 changes must be tracked, Silver will use SCD Type 2 versions with effective-time
 boundaries and a current-version indicator. Silver outputs will be
 reproducible from retained Bronze data and versioned transformation logic.
+When implementing SCD Type 2, distinguish source effective time (when an
+attribute was true at the source) from system or ingestion time (when the
+lakehouse received or recorded it), and define how both are represented.
 
 ### Gold
 
