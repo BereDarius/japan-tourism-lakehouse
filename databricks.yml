@@ -9,9 +9,3 @@ targets:
   dev:
     mode: development
     default: true
-
-  ## Optionally, there could be 'staging' or 'prod' targets here.
-  #
-  # prod:
-  #   workspace:
-  #     host: ${var.workspace_host}
