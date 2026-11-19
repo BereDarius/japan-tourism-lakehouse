@@ -17,6 +17,8 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.9",
     "databricks-connect>=17.3,<17.4",
+    "pyright>=1.1,<2.0",
+    "import-linter>=2.0,<3.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -43,3 +45,27 @@ select = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+include = ["src", "tests"]
+exclude = [
+    "**/__pycache__",
+    ".venv",
+    "build",
+    "dist",
+]
+
+[tool.importlinter]
+root_package = "japan_tourism"
+
+[[tool.importlinter.contracts]]
+name = "Hexagonal Architecture Dependency Rules"
+type = "layers"
+containers = ["japan_tourism"]
+layers = [
+    "infrastructure",
+    "application",
+    "domain",
+]
