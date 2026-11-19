@@ -1,8 +1,8 @@
 # ADR-005: Python Engineering Standards and Configuration Governance
 
-- **Status:** Proposed
+- **Status:** Approved
 - **Date:** 2026-11-19
-- **Decision Owners:** Japan Tourism Lakehouse Project
+- **Decision Makers:** @BereDarius
 - **Related ADRs:** ADR-001, ADR-002, ADR-003, ADR-004
 
 ## 1. Context

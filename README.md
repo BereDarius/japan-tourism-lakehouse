@@ -21,7 +21,7 @@ The project will combine multiple public datasets to provide a broader understan
 
 ## 🏗️ Architecture
 
-The platform follows the **Medallion Architecture** pattern, separating data processing into Bronze, Silver, and Gold layers.
+The platform is designed around the **Medallion Architecture** pattern, separating data processing into Bronze, Silver, and Gold layers.
 
 ```text
                    DATA SOURCES
@@ -132,7 +132,7 @@ Engineering tools and standards are introduced incrementally as the project evol
 
 ## 📊 Data Sources
 
-The project uses publicly available tourism statistics and geographic datasets.
+The project is being built around publicly available tourism statistics and geographic datasets.
 
 Potential and selected sources include:
 
@@ -169,7 +169,7 @@ This separation keeps dataset contracts portable and ingestion implementation in
 
 ## 🧱 Software Architecture and Engineering Standards
 
-The ingestion framework follows **Hexagonal Architecture (Ports and Adapters)**.
+The ingestion framework is designed around **Hexagonal Architecture (Ports and Adapters)**.
 
 The architectural direction separates:
 
