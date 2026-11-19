@@ -97,6 +97,18 @@ The previous methodology used employee-count-based strata. Represent the methodo
 
 Do not silently treat the methodology as unchanged across the boundary. Comparisons may still be possible, but analysis must disclose and consider the methodology change and any agency guidance on comparability.
 
+### Sampling design from 2026
+
+Under the revised methodology:
+
+- Accommodation facilities with 20 or more rooms are subject to a census survey.
+- Facilities with 1–19 rooms are subject to sampling.
+- Sampling rates for the sampled strata are determined by prefecture.
+
+The JTA cautions that year-over-year comparisons may include the effects of this methodological change. Analytical outputs comparing 2025 and 2026 should disclose this limitation.
+
+Official reference: [Changes associated with the revision of stratification criteria (JTA)](https://www.mlit.go.jp/kankocho/content/001983337.pdf).
+
 ## Publication status and revisions
 
 The agency publishes results at different stages, including first preliminary, second preliminary and definitive values. Historical files may also be corrected.
@@ -167,3 +179,4 @@ When publishing derived outputs, include the relevant source page, access/retrie
 | Date       | Change                                                                                 |
 | ---------- | -------------------------------------------------------------------------------------- |
 | 2026-11-19 | Initial profile based on discovery and profiling of `002028776.xlsx`, worksheet `3-1`. |
+| 2026-11-19 | Added the 2026 census/sampling design and official JTA methodology reference.          |
