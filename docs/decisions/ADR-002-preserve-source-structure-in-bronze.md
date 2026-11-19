@@ -1,8 +1,8 @@
 # ADR-002: Preserve Source Structure in Bronze
 
--   Status: Accepted
--   Date: 2026-11-19
--   Decision makers: @BereDarius
+- Status: Accepted
+- Date: 2026-11-19
+- Decision makers: @BereDarius
 
 ## Context
 
@@ -73,66 +73,65 @@ download.
 
 ### Positive
 
--   **Reprocessing flexibility:** Silver and Gold transformations can
-    change without retrieving historical source files again.
--   **Source fidelity:** Bronze retains the source's extracted tabular
-    structure rather than imposing analytical conventions.
--   **Separation of concerns:** Ingestion captures source data;
-    downstream layers standardize and interpret it.
--   **Traceability:** Bronze records can be linked to the exact source
-    artifact and worksheet.
+- **Reprocessing flexibility:** Silver and Gold transformations can
+  change without retrieving historical source files again.
+- **Source fidelity:** Bronze retains the source's extracted tabular
+  structure rather than imposing analytical conventions.
+- **Separation of concerns:** Ingestion captures source data;
+  downstream layers standardize and interpret it.
+- **Traceability:** Bronze records can be linked to the exact source
+  artifact and worksheet.
 
 ### Negative
 
--   **More complex downstream processing:** Silver must handle
-    source-specific layouts and convert them into consistent structures.
--   **Additional storage:** Retaining original artifacts and Bronze
-    representations requires more storage.
--   **Source schema variability:** Changes in source worksheet layouts
-    must be detected and handled explicitly.
+- **More complex downstream processing:** Silver must handle
+  source-specific layouts and convert them into consistent structures.
+- **Additional storage:** Retaining original artifacts and Bronze
+  representations requires more storage.
+- **Source schema variability:** Changes in source worksheet layouts
+  must be detected and handled explicitly.
 
 ## Implementation Considerations
 
 ### Original source artifacts
 
--   **Mandatory for file-based sources:** Acquire and preserve the
-    delivered source file unchanged.
--   Verify that artifact storage contains the exact bytes of the acquired
-    file, for example by comparing a calculated hash with the persisted
-    artifact hash.
--   Record a content hash (for example, SHA-256), source location,
-    retrieval timestamp, and artifact storage location.
--   Retain artifact metadata and the artifact for the Bronze delivery
-    retention period.
--   Do not treat an artifact acquisition or preservation failure as a
-    successful Bronze ingestion. Record the failure and a reconciliation
-    state under ADR-004.
--   If a source is file-based but an exception is unavoidable, record
-    the limitation and affected run explicitly; do not silently omit
-    artifact retention.
--   Artifact retention is not applicable to source types that do not
-    deliver a file.
--   Do not commit downloaded source workbooks to the public Git
-    repository unless there is a specific, reviewed reason.
+- **Mandatory for file-based sources:** Acquire and preserve the
+  delivered source file unchanged.
+- Verify that artifact storage contains the exact bytes of the acquired
+  file, for example by comparing a calculated hash with the persisted
+  artifact hash.
+- Record a content hash (for example, SHA-256), source location,
+  retrieval timestamp, and artifact storage location.
+- Retain artifact metadata and the artifact for the Bronze delivery
+  retention period.
+- Do not treat an artifact acquisition or preservation failure as a successful ingestion. Record the failure against the current run using the FAILED status.
+- Use RECONCILIATION_REQUIRED only when the outcome of a potentially committed Bronze write cannot be determined reliably.
+- If a source is file-based but an exception is unavoidable, record
+  the limitation and affected run explicitly; do not silently omit
+  artifact retention.
+- Artifact retention is not applicable to source types that do not
+  deliver a file.
+- Do not commit downloaded source workbooks to the public Git
+  repository unless there is a specific, reviewed reason.
 
 ### Bronze
 
--   Preserve extracted source rows and columns in their source-shaped
-    layout.
--   Add lineage columns without silently changing source business
-    values.
--   Identify the source artifact, worksheet, dataset, and ingestion run.
--   Retain deliveries append-only in accordance with ADR-001.
+- Preserve extracted source rows and columns in their source-shaped
+  layout.
+- Add lineage columns without silently changing source business
+  values.
+- Identify the source artifact, worksheet, dataset, and ingestion run.
+- Retain deliveries append-only in accordance with ADR-001.
 
 ### Silver
 
--   Perform type standardization, header interpretation, reshaping,
-    deduplication, and source-version reconciliation according to
-    documented rules.
--   Preserve traceability to Bronze records and their source artifact.
+- Perform type standardization, header interpretation, reshaping,
+  deduplication, and source-version reconciliation according to
+  documented rules.
+- Preserve traceability to Bronze records and their source artifact.
 
 ### Gold
 
--   Build business-facing facts, dimensions, aggregates, and analytical
-    models from Silver.
--   Do not modify retained Bronze source records.
+- Build business-facing facts, dimensions, aggregates, and analytical
+  models from Silver.
+- Do not modify retained Bronze source records.

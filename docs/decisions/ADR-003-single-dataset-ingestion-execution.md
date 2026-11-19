@@ -1,8 +1,8 @@
 # ADR-003: Single-Dataset Ingestion Execution Boundary
 
--   Status: Accepted
--   Date: 2026-11-19
--   Decision makers: @BereDarius
+- Status: Accepted
+- Date: 2026-11-19
+- Decision makers: @BereDarius
 
 ## Context
 
@@ -27,12 +27,12 @@ record the outcome, and return a structured result.
 
 The engine will not be responsible for:
 
--   Scheduling or triggering executions.
--   Selecting or coordinating multiple datasets.
--   Running multiple dataset ingestions in parallel.
--   Managing dependencies or execution order between datasets.
--   Providing cross-dataset workflow state or aggregated workflow
-    results.
+- Scheduling or triggering executions.
+- Selecting or coordinating multiple datasets.
+- Running multiple dataset ingestions in parallel.
+- Managing dependencies or execution order between datasets.
+- Providing cross-dataset workflow state or aggregated workflow
+  results.
 
 These responsibilities belong to a separate orchestration component or
 platform. The orchestration technology and deployment model are deferred
@@ -59,33 +59,33 @@ itself, require separating compute or storage from Databricks.
 
 ### Positive
 
--   **Clear responsibility:** The engine ingests one configured dataset
-    and reports the result.
--   **Independent testing:** Dataset ingestion can be tested without a
-    scheduler or multi-dataset execution environment.
--   **Orchestration flexibility:** An external application, Databricks
-    Workflows, or another orchestrator can invoke the same engine.
--   **Simpler initial implementation:** Parallelism, scheduling, and
-    dependency management do not complicate the first framework version.
+- **Clear responsibility:** The engine ingests one configured dataset
+  and reports the result.
+- **Independent testing:** Dataset ingestion can be tested without a
+  scheduler or multi-dataset execution environment.
+- **Orchestration flexibility:** An external application, Databricks
+  Workflows, or another orchestrator can invoke the same engine.
+- **Simpler initial implementation:** Parallelism, scheduling, and
+  dependency management do not complicate the first framework version.
 
 ### Negative
 
--   **No built-in scheduling:** A separate mechanism is required to
-    trigger ingestion.
--   **No cross-dataset coordination:** Dependencies and aggregate
-    workflow status must be implemented outside the engine if required.
--   **Additional integration work later:** An orchestrator will need a
-    stable invocation contract and a way to consume structured results.
+- **No built-in scheduling:** A separate mechanism is required to
+  trigger ingestion.
+- **No cross-dataset coordination:** Dependencies and aggregate
+  workflow status must be implemented outside the engine if required.
+- **Additional integration work later:** An orchestrator will need a
+  stable invocation contract and a way to consume structured results.
 
 ## Implementation Considerations
 
--   Provide a single-dataset API, conceptually
-    `engine.ingest(dataset_id)`.
--   Return a structured result containing at least the run identifier,
-    dataset identifier, status, record counts where available, source
-    artifact identity, and error details where applicable.
--   Keep the engine independent of any specific orchestration product.
--   Do not introduce `ingest_many`, scheduling, parallel execution, or
-    dependency graph features into the initial engine.
--   Revisit orchestration as a separate architecture decision after the
-    single-dataset ingestion lifecycle is implemented and validated.
+- Provide a single-dataset API, conceptually
+  `engine.ingest(dataset_id)`.
+- Return a structured result containing at least the run identifier,
+  dataset identifier, status, record counts where available, source
+  artifact identity, and error details where applicable.
+- Keep the engine independent of any specific orchestration product.
+- Do not introduce `ingest_many`, scheduling, parallel execution, or
+  dependency graph features into the initial engine.
+- Revisit orchestration as a separate architecture decision after the
+  single-dataset ingestion lifecycle is implemented and validated.
