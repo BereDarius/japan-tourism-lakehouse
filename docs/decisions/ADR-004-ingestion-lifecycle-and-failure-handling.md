@@ -1,8 +1,8 @@
 # ADR-004: Ingestion Lifecycle, Component Responsibilities, and Failure Handling
 
--   Status: Accepted
--   Date: 2026-11-19
--   Decision makers: @BereDarius
+- Status: Accepted
+- Date: 2026-11-19
+- Decision makers: @BereDarius
 
 ## Context
 
@@ -50,27 +50,27 @@ The framework separates control-plane and data-plane responsibilities.
 
 ### Control plane
 
--   **Metadata Repository:** Loads dataset definitions from the
-    configured metadata source.
--   **Configuration Validator:** Validates required fields, supported
-    settings, and internal consistency of dataset metadata.
--   **Reader Registry:** Resolves a source reader for the configured
-    source type or format.
--   **Execution Tracker:** Registers runs and records status,
-    timestamps, counts, artifact references, and error details.
--   **Ingestion Engine:** Coordinates the lifecycle and delegates work
-    to the responsible components.
+- **Metadata Repository:** Loads dataset definitions from the
+  configured metadata source.
+- **Configuration Validator:** Validates required fields, supported
+  settings, and internal consistency of dataset metadata.
+- **Reader Registry:** Resolves a source reader for the configured
+  source type or format.
+- **Execution Tracker:** Registers runs and records status,
+  timestamps, counts, artifact references, and error details.
+- **Ingestion Engine:** Coordinates the lifecycle and delegates work
+  to the responsible components.
 
 ### Data plane
 
--   **Artifact Manager:** Acquires source artifacts, calculates content
-    hashes, and preserves original artifacts where applicable.
--   **Source Readers:** Extract source data from the configured source.
-    Source-specific parsing belongs in the reader, not in the engine.
--   **Data Quality Validator:** Executes configured technical and
-    source-specific validation checks on extracted data.
--   **Bronze Writer:** Writes source-shaped extracted data to the
-    configured Bronze destination while adding ingestion lineage.
+- **Artifact Manager:** Acquires source artifacts, calculates content
+  hashes, and preserves original artifacts where applicable.
+- **Source Readers:** Extract source data from the configured source.
+  Source-specific parsing belongs in the reader, not in the engine.
+- **Data Quality Validator:** Executes configured technical and
+  source-specific validation checks on extracted data.
+- **Bronze Writer:** Writes source-shaped extracted data to the
+  configured Bronze destination while adding ingestion lineage.
 
 The engine must not contain source-format parsing logic, and source
 readers must not own run tracking or Bronze persistence.
@@ -79,21 +79,21 @@ readers must not own run tracking or Bronze persistence.
 
 The initial execution tracker will capture, where available:
 
--   Run identifier and dataset identifier.
--   Execution status.
--   Start and completion timestamps.
--   Source artifact identifier, location, and content hash.
--   Reader or extraction configuration version where relevant.
--   Number of records read and written.
--   Error category and diagnostic message.
+- Run identifier and dataset identifier.
+- Execution status.
+- Start and completion timestamps.
+- Source artifact identifier, location, and content hash.
+- Reader or extraction configuration version where relevant.
+- Number of records read and written.
+- Error category and diagnostic message.
 
 The initial run statuses are:
 
--   `PENDING`
--   `RUNNING`
--   `SUCCEEDED`
--   `FAILED`
--   `RETRYING`
+- `PENDING`
+- `RUNNING`
+- `SUCCEEDED`
+- `FAILED`
+- `RECONCILIATION_REQUIRED`
 
 A run identifier represents an execution attempt. A retry may create a
 new run identifier while retaining a deterministic identity for the
@@ -139,42 +139,42 @@ recovery protocol has been implemented and tested.
 
 ### Positive
 
--   **Predictable execution:** Every dataset follows the same high-level
-    lifecycle.
--   **Separation of concerns:** Metadata handling, source extraction,
-    validation, storage, and tracking are independently owned.
--   **Testability:** Components can be unit-tested independently, with
-    integration tests for their interactions.
--   **Operational visibility:** Run status, counts, artifacts, and
-    errors can be inspected.
--   **Safer recovery:** Deterministic batch identity and reconciliation
-    reduce the risk of duplicate writes after interrupted executions.
+- **Predictable execution:** Every dataset follows the same high-level
+  lifecycle.
+- **Separation of concerns:** Metadata handling, source extraction,
+  validation, storage, and tracking are independently owned.
+- **Testability:** Components can be unit-tested independently, with
+  integration tests for their interactions.
+- **Operational visibility:** Run status, counts, artifacts, and
+  errors can be inspected.
+- **Safer recovery:** Deterministic batch identity and reconciliation
+  reduce the risk of duplicate writes after interrupted executions.
 
 ### Negative
 
--   **More components to maintain:** Clear separation introduces
-    interfaces and coordination overhead.
--   **Tracking complexity:** Failures can occur while recording
-    failures, so operational logging and reconciliation are also
-    required.
--   **Idempotency complexity:** Reliable retries require a defined batch
-    identity and write protocol rather than a simple status check.
+- **More components to maintain:** Clear separation introduces
+  interfaces and coordination overhead.
+- **Tracking complexity:** Failures can occur while recording
+  failures, so operational logging and reconciliation are also
+  required.
+- **Idempotency complexity:** Reliable retries require a defined batch
+  identity and write protocol rather than a simple status check.
 
 ## Implementation Considerations
 
--   Define small interfaces for metadata access, source readers,
-    artifact management, validation, Bronze writing, and execution
-    tracking.
--   Keep the engine as lifecycle coordinator; avoid embedding
-    implementation details of individual components.
--   Use structured execution results rather than relying only on printed
-    log messages.
--   Preserve original source artifacts and source-shaped Bronze data in
-    accordance with ADR-001 and ADR-002.
--   Add unit tests for configuration failures, reader resolution,
-    validation failures, write failures, and result construction.
--   Add integration tests for successful ingestion and recovery from an
-    uncertain write outcome.
--   Implement only the components and behavior required by the first
-    real dataset; avoid introducing orchestration features into the
-    engine.
+- Define small interfaces for metadata access, source readers,
+  artifact management, validation, Bronze writing, and execution
+  tracking.
+- Keep the engine as lifecycle coordinator; avoid embedding
+  implementation details of individual components.
+- Use structured execution results rather than relying only on printed
+  log messages.
+- Preserve original source artifacts and source-shaped Bronze data in
+  accordance with ADR-001 and ADR-002.
+- Add unit tests for configuration failures, reader resolution,
+  validation failures, write failures, and result construction.
+- Add integration tests for successful ingestion and recovery from an
+  uncertain write outcome.
+- Implement only the components and behavior required by the first
+  real dataset; avoid introducing orchestration features into the
+  engine.

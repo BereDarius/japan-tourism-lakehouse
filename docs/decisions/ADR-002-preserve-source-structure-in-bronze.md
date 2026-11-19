@@ -32,11 +32,20 @@ clearly separated ingestion-lineage metadata. Bronze does not attempt to
 preserve presentation features such as formatting, merged-cell
 appearance, or visual layout.
 
-Where practical, the original source artifact (for example, the
-downloaded XLSX workbook) will also be retained unchanged in artifact
-storage. The artifact provides a recoverable copy of the delivered
-source; Bronze provides a queryable Delta representation of the
-extracted source data.
+For file-based sources, retaining the original source artifact (for
+example, the downloaded XLSX workbook) is mandatory. The artifact must
+be preserved unchanged in artifact storage. The artifact provides a
+recoverable copy of the delivered source; Bronze provides a queryable
+Delta representation of the extracted source data.
+
+Artifact retention does not apply when a source is not file-based, such
+as a streaming or API source. For file-based sources, skipping retention
+is permitted only when the relevant file cannot be acquired or stored
+because of a documented source, technical, or approved policy
+limitation. An omission must be recorded in ingestion lineage and the
+result must not be reported as a normal successful ingestion. The
+default is to retain and verify the artifact before the ingestion is
+considered successful.
 
 Silver will perform standardization and structural transformations, such
 as converting a wide monthly worksheet into a normalized long-form
@@ -56,8 +65,8 @@ download.
 2.  **Store only the original binary source artifact.** Rejected as the
     sole representation because it is not directly queryable as a Delta
     table and requires repeated extraction for downstream processing.
-3.  **Preserve source-shaped extracted data in Bronze and retain the
-    original artifact where practical.** Selected because it balances
+3.  **Preserve source-shaped extracted data in Bronze and retain file
+    artifacts for file-based sources.** Selected because it balances
     queryability, source fidelity, lineage, and downstream flexibility.
 
 ## Consequences
@@ -86,9 +95,23 @@ download.
 
 ### Original source artifacts
 
--   Preserve downloaded source files unchanged where practical.
+-   **Mandatory for file-based sources:** Acquire and preserve the
+    delivered source file unchanged.
+-   Verify that artifact storage contains the exact bytes of the acquired
+    file, for example by comparing a calculated hash with the persisted
+    artifact hash.
 -   Record a content hash (for example, SHA-256), source location,
     retrieval timestamp, and artifact storage location.
+-   Retain artifact metadata and the artifact for the Bronze delivery
+    retention period.
+-   Do not treat an artifact acquisition or preservation failure as a
+    successful Bronze ingestion. Record the failure and a reconciliation
+    state under ADR-004.
+-   If a source is file-based but an exception is unavoidable, record
+    the limitation and affected run explicitly; do not silently omit
+    artifact retention.
+-   Artifact retention is not applicable to source types that do not
+    deliver a file.
 -   Do not commit downloaded source workbooks to the public Git
     repository unless there is a specific, reviewed reason.
 
