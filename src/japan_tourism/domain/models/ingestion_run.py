@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 from japan_tourism.domain.models.ingestion_status import IngestionStatus
@@ -52,6 +52,63 @@ class IngestionRun:
     @property
     def error_message(self) -> str | None:
         return self._error_message
+
+    @classmethod
+    def reconstitute(
+        cls,
+        *,
+        dataset_id: DatasetId,
+        run_id: UUID,
+        status: object,
+        started_at: datetime | None,
+        completed_at: datetime | None,
+        error_message: str | None,
+    ) -> "IngestionRun":
+        """Restore an ingestion run from persisted state."""
+
+        if not isinstance(status, IngestionStatus):
+            raise ValueError("Invalid ingestion status.")
+
+        timestamps = (started_at, completed_at)
+
+        for timestamp in timestamps:
+            if timestamp is not None:
+                if timestamp.utcoffset() is None:
+                    raise ValueError("Ingestion timestamps must be timezone-aware.")
+
+                if timestamp.utcoffset() != timedelta(0):
+                    raise ValueError("Ingestion timestamps must be in UTC.")
+
+        if status == IngestionStatus.PENDING:
+            valid = started_at is None and completed_at is None and error_message is None
+
+        elif status == IngestionStatus.RUNNING:
+            valid = started_at is not None and completed_at is None and error_message is None
+
+        elif status == IngestionStatus.SUCCEEDED:
+            valid = started_at is not None and completed_at is not None and error_message is None
+
+        else:
+            valid = (
+                started_at is not None
+                and completed_at is not None
+                and error_message is not None
+                and bool(error_message.strip())
+            )
+
+        if not valid:
+            raise ValueError(f"Invalid persisted state for ingestion status {status}.")
+
+        if started_at is not None and completed_at is not None and completed_at < started_at:
+            raise ValueError("Completion timestamp cannot precede start timestamp.")
+
+        run = cls(dataset_id=dataset_id, run_id=run_id)
+        run._status = status
+        run._started_at = started_at
+        run._completed_at = completed_at
+        run._error_message = error_message
+
+        return run
 
     def start(self) -> None:
         """Transition the run from PENDING to RUNNING."""

@@ -225,3 +225,6 @@ __marimo__/
 .databricks
 
 .import_linter_cache/
+
+# Locally preserved source artifacts
+.local/
