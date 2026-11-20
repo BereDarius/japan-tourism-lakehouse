@@ -8,7 +8,11 @@ from pydantic import ValidationError
 from japan_tourism.application.exceptions import (
     DatasetManifestNotFoundError,
 )
-from japan_tourism.application.models.dataset_manifest import DatasetManifest
+from japan_tourism.application.models.dataset_manifest import (
+    DatasetManifest,
+    ExcelLayout,
+    ExcelReaderConfig,
+)
 from japan_tourism.domain.value_objects.dataset_id import DatasetId
 from japan_tourism.infrastructure.configuration.manifest_loader import (
     YamlManifestLoader,
@@ -77,7 +81,20 @@ def test_get_returns_dataset_manifest(
 
     result = repository.get(dataset_id)
 
-    assert result == DatasetManifest(dataset_id=dataset_id)
+    assert result == DatasetManifest(
+        dataset_id=dataset_id,
+        reader=ExcelReaderConfig(
+            worksheet="3-1",
+            layout=ExcelLayout(
+                title_row=1,
+                unit_row=2,
+                reporting_year_row=3,
+                month_header_row=4,
+                data_start_row=5,
+                expected_data_rows=48,
+            ),
+        ),
+    )
 
 
 def test_get_raises_when_manifest_is_missing(

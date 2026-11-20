@@ -3,7 +3,11 @@ from pathlib import Path
 from japan_tourism.application.exceptions import (
     DatasetManifestNotFoundError,
 )
-from japan_tourism.application.models.dataset_manifest import DatasetManifest
+from japan_tourism.application.models.dataset_manifest import (
+    DatasetManifest,
+    ExcelLayout,
+    ExcelReaderConfig,
+)
 from japan_tourism.application.ports.dataset_manifest_repository import (
     DatasetManifestRepository,
 )
@@ -40,4 +44,19 @@ class YamlDatasetManifestRepository(DatasetManifestRepository):
                 f"requested dataset ID '{dataset_id.value}'."
             )
 
-        return DatasetManifest(dataset_id=dataset_id)
+        layout = manifest.reader.layout
+
+        return DatasetManifest(
+            dataset_id=dataset_id,
+            reader=ExcelReaderConfig(
+                worksheet=manifest.reader.worksheet,
+                layout=ExcelLayout(
+                    title_row=layout.title_row,
+                    unit_row=layout.unit_row,
+                    reporting_year_row=layout.reporting_year_row,
+                    month_header_row=layout.month_header_row,
+                    data_start_row=layout.data_start_row,
+                    expected_data_rows=layout.expected_data_rows,
+                ),
+            ),
+        )
