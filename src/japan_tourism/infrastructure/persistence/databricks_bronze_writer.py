@@ -9,6 +9,7 @@ from pyspark.sql.types import (
     TimestampType,
 )
 
+from japan_tourism.application.exceptions import BronzeWriteOutcomeUnknownError
 from japan_tourism.application.models.bronze_record import BronzeRecord
 from japan_tourism.application.ports.bronze_writer import BronzeWriter
 
@@ -76,4 +77,9 @@ class DatabricksBronzeWriter(BronzeWriter):
             schema=self._schema(),
         )
 
-        (dataframe.write.format("delta").mode("append").saveAsTable(self._table_name))
+        try:
+            (dataframe.write.format("delta").mode("append").saveAsTable(self._table_name))
+        except Exception as exc:
+            raise BronzeWriteOutcomeUnknownError(
+                f"Bronze write outcome is unknown for table {self._table_name}."
+            ) from exc

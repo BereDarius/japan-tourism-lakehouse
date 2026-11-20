@@ -26,6 +26,9 @@ dev = [
     "import-linter>=2.0,<3.0",
 ]
 
+[project.scripts]
+japan-tourism-ingest = "japan_tourism.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

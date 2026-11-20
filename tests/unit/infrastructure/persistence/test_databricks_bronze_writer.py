@@ -4,6 +4,7 @@ from uuid import UUID
 
 import pytest
 
+from japan_tourism.application.exceptions import BronzeWriteOutcomeUnknownError
 from japan_tourism.application.models.bronze_record import BronzeRecord
 from japan_tourism.domain.value_objects.dataset_id import DatasetId
 from japan_tourism.infrastructure.persistence.databricks_bronze_writer import (
@@ -131,17 +132,36 @@ def test_empty_records_do_not_create_dataframe(
     spark.createDataFrame.assert_not_called()
 
 
-def test_write_failure_is_propagated(
+def test_write_failure_raises_outcome_unknown_error(
     writer: DatabricksBronzeWriter,
     spark: MagicMock,
     bronze_record: BronzeRecord,
 ) -> None:
     dataframe = spark.createDataFrame.return_value
-    dataframe.write.format.return_value.mode.return_value.saveAsTable.side_effect = RuntimeError(
-        "Delta write failed"
-    )
+    original_error = RuntimeError("Delta write failed")
 
-    with pytest.raises(RuntimeError, match="Delta write failed"):
+    dataframe.write.format.return_value.mode.return_value.saveAsTable.side_effect = original_error
+
+    with pytest.raises(
+        BronzeWriteOutcomeUnknownError,
+        match="outcome is unknown",
+    ) as exc_info:
         writer.write([bronze_record])
 
+    assert exc_info.value.__cause__ is original_error
+
     dataframe.write.format.return_value.mode.return_value.saveAsTable.assert_called_once()
+
+
+def test_dataframe_creation_failure_is_propagated(
+    writer: DatabricksBronzeWriter,
+    spark: MagicMock,
+    bronze_record: BronzeRecord,
+) -> None:
+    original_error = RuntimeError("DataFrame creation failed")
+    spark.createDataFrame.side_effect = original_error
+
+    with pytest.raises(RuntimeError, match="DataFrame creation failed") as exc_info:
+        writer.write([bronze_record])
+
+    assert exc_info.value is original_error

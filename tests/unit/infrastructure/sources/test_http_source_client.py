@@ -197,6 +197,9 @@ def test_invalid_configuration_is_rejected() -> None:
     with pytest.raises(ValueError, match="Spool memory limit"):
         HttpSourceClient(spool_max_memory_bytes=0)
 
+    with pytest.raises(ValueError, match="Maximum redirects"):
+        HttpSourceClient(max_redirects=-1)
+
 
 def test_response_is_closed_after_download_failure() -> None:
     response: httpx.Response | None = None
@@ -221,3 +224,78 @@ def test_response_is_closed_after_download_failure() -> None:
 
     assert response is not None
     assert response.is_closed
+
+
+def test_rejects_cross_origin_redirect() -> None:
+    requested_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requested_urls.append(str(request.url))
+
+        return httpx.Response(
+            302,
+            headers={"Location": "https://other.example/download.xlsx"},
+            request=request,
+        )
+
+    client = make_client(httpx.MockTransport(handler))
+
+    with pytest.raises(ValueError, match="Cross-origin"):
+        with client.open("https://example.com/source.xlsx"):
+            pytest.fail("Cross-origin redirect must be rejected.")
+
+    assert len(requested_urls) == 1
+
+
+def test_rejects_https_to_http_redirect() -> None:
+    requested_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requested_urls.append(str(request.url))
+
+        return httpx.Response(
+            302,
+            headers={"Location": "http://example.com/download.xlsx"},
+            request=request,
+        )
+
+    client = make_client(httpx.MockTransport(handler))
+
+    with pytest.raises(ValueError, match="HTTPS-to-HTTP"):
+        with client.open("https://example.com/source.xlsx"):
+            pytest.fail("HTTPS downgrade must be rejected.")
+
+    assert len(requested_urls) == 1
+
+
+def test_rejects_excessive_redirects() -> None:
+    requested_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requested_urls.append(str(request.url))
+
+        return httpx.Response(
+            302,
+            headers={"Location": f"/redirect-{len(requested_urls)}"},
+            request=request,
+        )
+
+    client = HttpSourceClient(
+        transport=httpx.MockTransport(handler),
+        max_redirects=2,
+    )
+
+    with pytest.raises(httpx.TooManyRedirects):
+        with client.open("https://example.com/start"):
+            pytest.fail("Excessive redirects must be rejected.")
+
+    assert len(requested_urls) == 3
+
+
+def test_rejects_redirect_without_location_header() -> None:
+    transport = httpx.MockTransport(lambda request: httpx.Response(302, request=request))
+    client = make_client(transport)
+
+    with pytest.raises(httpx.HTTPStatusError, match="Location"):
+        with client.open("https://example.com/source.xlsx"):
+            pytest.fail("Redirect without Location must be rejected.")

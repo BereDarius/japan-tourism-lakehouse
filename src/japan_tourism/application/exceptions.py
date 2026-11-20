@@ -19,3 +19,7 @@ class DatasetManifestNotFoundError(Exception):
 
 class DuplicateArtifactAcquisitionError(Exception):
     """Raised when an acquisition ID already exists."""
+
+
+class BronzeWriteOutcomeUnknownError(RuntimeError):
+    """Raised when a Bronze write may have committed but its outcome is unknown."""
