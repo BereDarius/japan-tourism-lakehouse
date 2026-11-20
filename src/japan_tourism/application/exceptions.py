@@ -15,3 +15,7 @@ class DatasetManifestNotFoundError(Exception):
     def __init__(self, dataset_id: DatasetId) -> None:
         self.dataset_id = dataset_id
         super().__init__(f"Manifest for dataset '{dataset_id}' was not found.")
+
+
+class DuplicateArtifactAcquisitionError(Exception):
+    """Raised when an acquisition ID already exists."""
